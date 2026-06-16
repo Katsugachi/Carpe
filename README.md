@@ -1,2 +1,2 @@
-# Spark
-A mini web app that acts as a kindle. fun little projects
+# Carpe
+The first ever open source webkindle. Turn your old ahh phone into a kindle, get some use out of it.
