@@ -511,7 +511,10 @@
         </svg>
       </button>
       <button class="icon-btn" id="bookmark-btn" title="Bookmark page">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <svg id="bm-icon-empty" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg id="bm-icon-filled" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" style="display:none">
           <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
@@ -709,28 +712,12 @@ async function loadBuiltinBooks() {
   }
 }
 
-// ── TEXT PAGINATION — uses the LIVE page-text element as the ruler ──
 function paginateText(text, containerEl) {
   const refEl = document.getElementById('page-text');
-
-  // Wait for font/family to apply by reading computed style AFTER applySettings ran.
-  // Then measure capacity using the real element itself.
-
-  // Determine available height: container height (page-viewport) minus any margins we add.
-  // page-text has no padding now (we removed padding: 40px 0), so availH = container height.
   const availH = Math.max(100, containerEl.clientHeight);
 
-  // Make page-text temporarily a measuring ruler (off-screen, no padding)
   const prevText = refEl.textContent;
   const prevStyle = refEl.getAttribute('style') || '';
-  const prevVisibility = refEl.style.visibility;
-  const prevPosition = refEl.style.position;
-  const prevTop = refEl.style.top;
-  const prevLeft = refEl.style.left;
-  const prevPointer = refEl.style.pointerEvents;
-  const prevMaxWidth = refEl.style.maxWidth;
-  const prevWidth = refEl.style.width;
-  const prevOverflow = refEl.style.overflow;
 
   refEl.style.visibility = 'hidden';
   refEl.style.position = 'absolute';
@@ -747,18 +734,42 @@ function paginateText(text, containerEl) {
     return refEl.offsetHeight <= availH;
   };
 
+  // Normalize line endings, then split into lines (empty lines preserved as separators)
   const clean = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  const blocks = clean.split(/\n\s*\n/).map(b => b.replace(/\n+/g, ' ').trim()).filter(b => b.length > 0);
+  const lines = clean.split('\n');
 
   const result = [];
   let buffer = '';
+  let pendingBreak = false; // becomes true after seeing an empty line
 
-  for (const block of blocks) {
-    const candidate = buffer ? buffer + '\n\n' + block : block;
-    if (fits(candidate)) { buffer = candidate; continue; }
-    if (buffer) { result.push(buffer); buffer = ''; }
-    if (fits(block)) { buffer = block; continue; }
-    splitChunk(block, result, b => { buffer = b; });
+  for (const line of lines) {
+    if (line === '') {
+      // Blank line = request a paragraph break before next non-empty line
+      pendingBreak = true;
+      continue;
+    }
+
+    // Build the candidate: existing buffer + appropriate separator + this line
+    // If buffer is empty, no leading separator (avoids leading blank lines on a page)
+    const prefix = buffer
+      ? (pendingBreak ? '\n\n' : '\n')
+      : '';
+    const candidate = buffer + prefix + line;
+
+    if (fits(candidate)) {
+      buffer = candidate;
+      pendingBreak = false;
+    } else {
+      // Flush current buffer as a page
+      if (buffer) { result.push(buffer); buffer = ''; }
+      if (fits(line)) {
+        buffer = line;
+        pendingBreak = false;
+      } else {
+        // Line is longer than a whole page — split it
+        splitChunk(line, result, b => { buffer = b; pendingBreak = false; });
+      }
+    }
   }
   if (buffer) result.push(buffer);
 
@@ -797,27 +808,6 @@ function paginateText(text, containerEl) {
     }
     setBuffer(wordBuf);
   }
-}
-
-function detectChapters(text) {
-  const chapters = [];
-  const lines = text.split('\n');
-  const patterns = [
-    /^(chapter|ch\.?|part|section|book)\s+(\d+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten)/i,
-    /^\s*(CHAPTER|PART|SECTION)\s+/,
-    /^[A-Z][A-Z\s]{4,40}$/,
-  ];
-  let charPos = 0;
-  lines.forEach((line, i) => {
-    const trimmed = line.trim();
-    if (trimmed.length > 0 && trimmed.length < 80) {
-      for (const p of patterns) {
-        if (p.test(trimmed)) { chapters.push({ name: trimmed, charPos, lineIdx: i }); break; }
-      }
-    }
-    charPos += line.length + 1;
-  });
-  return chapters;
 }
 
 function coverColorClass(idx) { return 'cover-' + (idx % 8); }
@@ -915,6 +905,7 @@ function openBook(id) {
     book.totalPages = pages.length;
     if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
     renderPage(currentPage);
+    updateBookmarkIcon();
     renderTOC();
     renderBookmarks();
     save();
@@ -960,7 +951,9 @@ function renderPage(n, dir) {
 
   if (searchResults.length > 0) applySearchHighlight();
   if (currentBook) { currentBook.lastPage = n; currentBook.totalPages = pages.length; }
+  updateBookmarkIcon();
 }
+
 
 function nextPage() { if (currentPage < pages.length - 1) { renderPage(currentPage + 1, 'forward'); save(); } }
 function prevPage() { if (currentPage > 0) { renderPage(currentPage - 1, 'back'); save(); } }
@@ -1012,6 +1005,16 @@ function toggleBookmark() {
   }
   save();
   renderBookmarks();
+  updateBookmarkIcon();
+}
+
+function updateBookmarkIcon() {
+  if (!currentBook) return;
+  const id = currentBook.id;
+  const isBookmarked = !!(bookmarks[id] && bookmarks[id].some(b => b.page === currentPage));
+  document.getElementById('bm-icon-empty').style.display = isBookmarked ? 'none' : 'block';
+  document.getElementById('bm-icon-filled').style.display = isBookmarked ? 'block' : 'none';
+  document.getElementById('bookmark-btn').title = isBookmarked ? 'Remove bookmark' : 'Bookmark page';
 }
 
 function renderBookmarks() {
