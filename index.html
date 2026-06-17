@@ -128,9 +128,12 @@
   .reader-header {
     padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between;
     border-bottom: 1px solid var(--border); flex-shrink: 0; transition: opacity 0.25s;
+    cursor: default;
   }
   body.dark .reader-header { border-color: var(--border-dark); }
-  .reader-header.hidden { opacity: 0; pointer-events: none; }
+  /* Hidden: transparent but still occupies layout space and is clickable to reveal */
+  .reader-header.hidden { opacity: 0; }
+  .reader-header.hidden * { pointer-events: none; }
 
   .reader-book-title {
     font-size: 13px; font-weight: 500; color: var(--ink-muted); white-space: nowrap;
@@ -163,9 +166,12 @@
   .reader-footer {
     height: 44px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
     border-top: 1px solid var(--border); flex-shrink: 0; transition: opacity 0.25s;
+    cursor: default;
   }
   body.dark .reader-footer { border-color: var(--border-dark); }
-  .reader-footer.hidden { opacity: 0; pointer-events: none; }
+  /* Hidden: transparent but still occupies layout space and is clickable to reveal */
+  .reader-footer.hidden { opacity: 0; }
+  .reader-footer.hidden * { pointer-events: none; }
 
   .page-indicator { font-size: 12px; color: var(--ink-muted); font-family: var(--font-ui); }
   body.dark .page-indicator { color: var(--ink-muted-dark); }
@@ -734,23 +740,19 @@ function paginateText(text, containerEl) {
     return refEl.offsetHeight <= availH;
   };
 
-  // Normalize line endings, then split into lines (empty lines preserved as separators)
   const clean = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   const lines = clean.split('\n');
 
   const result = [];
   let buffer = '';
-  let pendingBreak = false; // becomes true after seeing an empty line
+  let pendingBreak = false;
 
   for (const line of lines) {
     if (line === '') {
-      // Blank line = request a paragraph break before next non-empty line
       pendingBreak = true;
       continue;
     }
 
-    // Build the candidate: existing buffer + appropriate separator + this line
-    // If buffer is empty, no leading separator (avoids leading blank lines on a page)
     const prefix = buffer
       ? (pendingBreak ? '\n\n' : '\n')
       : '';
@@ -760,20 +762,17 @@ function paginateText(text, containerEl) {
       buffer = candidate;
       pendingBreak = false;
     } else {
-      // Flush current buffer as a page
       if (buffer) { result.push(buffer); buffer = ''; }
       if (fits(line)) {
         buffer = line;
         pendingBreak = false;
       } else {
-        // Line is longer than a whole page — split it
         splitChunk(line, result, b => { buffer = b; pendingBreak = false; });
       }
     }
   }
   if (buffer) result.push(buffer);
 
-  // Restore page-text
   refEl.textContent = prevText;
   refEl.setAttribute('style', prevStyle);
 
@@ -954,7 +953,6 @@ function renderPage(n, dir) {
   updateBookmarkIcon();
 }
 
-
 function nextPage() { if (currentPage < pages.length - 1) { renderPage(currentPage + 1, 'forward'); save(); } }
 function prevPage() { if (currentPage > 0) { renderPage(currentPage - 1, 'back'); save(); } }
 
@@ -1046,6 +1044,59 @@ function renderBookmarks() {
     d.addEventListener('click', () => { renderPage(bm.page); closeAllPanels(); });
     list.appendChild(d);
   });
+}
+
+function detectChapters(text) {
+  const chapters = [];
+  const lines = text.split('\n');
+
+  const strongPatterns = [
+    /^chapter\s+.{0,60}$/i,
+    /^part\s+.{0,60}$/i,
+    /^book\s+.{0,60}$/i,
+    /^volume\s+.{0,60}$/i,
+    /^(prologue|epilogue|introduction|preface|foreword|afterword|appendix|interlude|intermission)(\s*.{0,50})?$/i,
+    /^[IVXLCDM]{1,6}\.?\s*$/,
+    /^\d{1,3}\.?\s*$/,
+  ];
+
+  let charPos = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const len = trimmed.length;
+
+    if (len > 0 && len <= 80) {
+      let matched = false;
+
+      for (const pat of strongPatterns) {
+        if (pat.test(trimmed)) { matched = true; break; }
+      }
+
+      if (!matched && len <= 60 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed)) {
+        matched = true;
+      }
+
+      if (!matched && len <= 60) {
+        const prevBlank = i === 0 || lines[i - 1].trim() === '';
+        const nextBlank = i === lines.length - 1 || lines[i + 1].trim() === '';
+        if (prevBlank && nextBlank) matched = true;
+      }
+
+      if (matched) chapters.push({ name: trimmed, charPos });
+    }
+
+    charPos += line.length + 1;
+  }
+
+  if (chapters.length > 200) {
+    return chapters.filter(ch => {
+      return strongPatterns.some(pat => pat.test(ch.name)) ||
+             (ch.name.length <= 60 && ch.name === ch.name.toUpperCase() && /[A-Z]/.test(ch.name));
+    });
+  }
+
+  return chapters;
 }
 
 function renderTOC() {
@@ -1231,17 +1282,23 @@ document.getElementById('modal-submit').addEventListener('click', () => {
 });
 
 document.getElementById('back-btn').addEventListener('click', closeReader);
-document.getElementById('tap-left').addEventListener('click', () => { prevPage(); showHeaders(); });
-document.getElementById('tap-right').addEventListener('click', () => { nextPage(); showHeaders(); });
 
+// Page turns: NO showHeaders — silent navigation
+document.getElementById('tap-left').addEventListener('click', () => { prevPage(); });
+document.getElementById('tap-right').addEventListener('click', () => { nextPage(); });
+
+// Clicking the reading area just closes panels — no header popup
 document.querySelector('.page-content').addEventListener('click', e => {
-  if (e.target === e.currentTarget || e.target.id === 'page-text') { showHeaders(); closeAllPanels(); }
-});
+  if (e.target === e.currentTarget || e.target.id === 'page-text') { closeAllPanels(); } });
+
+// Click on the header/footer zone (even when hidden) to reveal them
+document.getElementById('reader-header').addEventListener('click', () => { showHeaders(); });
+document.getElementById('reader-footer').addEventListener('click', () => { showHeaders(); });
 
 document.addEventListener('keydown', e => {
   if (document.getElementById('reader').classList.contains('active')) {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); nextPage(); showHeaders(); }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevPage(); showHeaders(); }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); nextPage(); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevPage(); }
     if (e.key === 'Escape') closeAllPanels();
     if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); togglePanel('search-panel'); }
     if (e.key === 'b' && !e.ctrlKey) toggleBookmark();
@@ -1255,7 +1312,7 @@ document.addEventListener('touchend', e => {
   if (!document.getElementById('reader').classList.contains('active')) return;
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
-  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) { if (dx < 0) nextPage(); else prevPage(); showHeaders(); }
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) { if (dx < 0) nextPage(); else prevPage(); }
 });
 
 document.getElementById('progress-track').addEventListener('click', e => {
