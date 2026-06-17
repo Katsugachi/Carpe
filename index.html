@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Carpe</title>
 <style>
   :root {
@@ -23,87 +26,107 @@
     --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    height: -webkit-fill-available;
+  }
 
   body {
     font-family: var(--font-ui);
     background: var(--bg);
     color: var(--ink);
-    height: 100dvh;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
     overflow: hidden;
     user-select: none;
+    -webkit-user-select: none;
     transition: background 0.3s, color 0.3s;
+    -webkit-text-size-adjust: 100%;
   }
 
   body.dark { background: var(--bg-dark); color: var(--ink-dark); }
 
-  #library { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+  #library { display: flex; flex-direction: column; height: 100vh; height: -webkit-fill-available; height: 100dvh; overflow: hidden; }
 
   .library-header {
-    padding: 28px 32px 20px;
+    padding: 18px 16px 14px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
+    gap: 8px;
+    flex-wrap: nowrap;
+    min-width: 0;
   }
   body.dark .library-header { border-color: var(--border-dark); }
 
-  .carpe-logo { display: flex; align-items: center; gap: 10px; }
-  .carpe-logo svg { width: 28px; height: 28px; }
-  .logo-text { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--ink); }
+  .carpe-logo { display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-width: 0; }
+  .carpe-logo svg { width: 24px; height: 24px; flex-shrink: 0; }
+  .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; color: var(--ink); white-space: nowrap; }
   body.dark .logo-text { color: var(--ink-dark); }
-  .logo-sub { font-size: 11px; color: var(--ink-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+  .logo-sub { font-size: 10px; color: var(--ink-muted); letter-spacing: 1.2px; text-transform: uppercase; margin-top: 0; }
   body.dark .logo-sub { color: var(--ink-muted-dark); }
-  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .logo-text-wrap { display: flex; flex-direction: column; min-width: 0; }
+  .header-actions { display: flex; gap: 6px; align-items: center; min-width: 0; flex: 1; justify-content: flex-end; }
 
   .icon-btn {
     width: 36px; height: 36px; border: none; background: transparent; cursor: pointer;
     border-radius: 6px; display: flex; align-items: center; justify-content: center;
     color: var(--ink-muted); transition: background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
   }
   .icon-btn:hover { background: var(--surface); color: var(--ink); }
   body.dark .icon-btn { color: var(--ink-muted-dark); }
   body.dark .icon-btn:hover { background: var(--surface-dark); color: var(--ink-dark); }
-  .icon-btn svg { width: 18px; height: 18px; stroke-width: 1.8; }
+  .icon-btn:active { background: var(--surface); }
+  .icon-btn svg { width: 18px; height: 18px; stroke-width: 1.8; pointer-events: none; }
 
   .library-shelf {
-    flex: 1; overflow-y: auto; padding: 32px;
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 28px 24px; align-content: start;
+    flex: 1 1 auto; min-height: 0;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 20px 16px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 20px 14px; align-content: start;
   }
   .library-shelf::-webkit-scrollbar { width: 4px; }
   .library-shelf::-webkit-scrollbar-track { background: transparent; }
   .library-shelf::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  .book-card { cursor: pointer; display: flex; flex-direction: column; gap: 10px; transition: transform 0.15s; }
-  .book-card:hover { transform: translateY(-2px); }
+  .book-card { cursor: pointer; display: flex; flex-direction: column; gap: 8px; transition: transform 0.15s; }
+  .book-card:active { transform: scale(0.97); }
 
   .book-cover {
     aspect-ratio: 2/3; border-radius: 4px; overflow: hidden; position: relative;
     box-shadow: 3px 4px 12px rgba(0,0,0,0.18), inset -2px 0 4px rgba(0,0,0,0.12);
+    background: #555;
   }
   .book-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .book-cover-placeholder {
     width: 100%; height: 100%; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 8px; padding: 12px; text-align: center;
+    align-items: center; justify-content: center; gap: 8px; padding: 10px; text-align: center;
   }
-  .cover-title-text { font-size: 12px; font-weight: 600; line-height: 1.3; color: inherit; word-break: break-word; }
+  .cover-title-text { font-size: 11px; font-weight: 600; line-height: 1.3; color: inherit; word-break: break-word; }
 
   .book-progress-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(0,0,0,0.15); }
   .book-progress-fill { height: 100%; background: rgba(0,0,0,0.5); transition: width 0.3s; }
   body.dark .book-progress-fill { background: rgba(255,255,255,0.5); }
 
-  .book-meta { padding: 0 2px; }
+  .book-meta { padding: 0 2px; min-width: 0; }
   .book-title-label {
-    font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.3;
+    font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.3;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    word-break: break-word;
   }
   body.dark .book-title-label { color: var(--ink-dark); }
-  .book-percent { font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+  .book-percent { font-size: 10px; color: var(--ink-muted); margin-top: 2px; }
   body.dark .book-percent { color: var(--ink-muted-dark); }
 
-  .upload-card { cursor: pointer; display: flex; flex-direction: column; gap: 10px; }
+  .upload-card { cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
   .upload-area {
     aspect-ratio: 2/3; border-radius: 4px; border: 1.5px dashed var(--border);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -116,172 +139,202 @@
 
   .empty-state {
     grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 60px 24px; gap: 12px; color: var(--ink-muted); text-align: center;
+    justify-content: center; padding: 40px 16px; gap: 10px; color: var(--ink-muted); text-align: center;
   }
   body.dark .empty-state { color: var(--ink-muted-dark); }
-  .empty-state svg { width: 40px; height: 40px; stroke-width: 1.2; opacity: 0.4; }
-  .empty-state p { font-size: 14px; max-width: 240px; line-height: 1.5; }
+  .empty-state svg { width: 36px; height: 36px; stroke-width: 1.2; opacity: 0.4; }
+  .empty-state p { font-size: 13px; max-width: 240px; line-height: 1.5; }
 
-  #reader { display: none; flex-direction: column; height: 100dvh; position: relative; }
+  #reader { display: none; flex-direction: column; height: 100vh; height: -webkit-fill-available; height: 100dvh; position: relative; }
   #reader.active { display: flex; }
 
   .reader-header {
-    padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid var(--border); flex-shrink: 0; transition: opacity 0.25s;
+    padding: 0 12px; height: 48px; min-height: 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border); flex-shrink: 0; transition: opacity 0.25s, transform 0.25s;
+    gap: 6px;
+    position: relative; z-index: 20;
+    background: var(--bg);
   }
-  body.dark .reader-header { border-color: var(--border-dark); }
-  .reader-header.hidden { opacity: 0; pointer-events: none; }
+  body.dark .reader-header { border-color: var(--border-dark); background: var(--bg-dark); }
+  .reader-header.hidden { opacity: 0; pointer-events: none; transform: translateY(-4px); }
 
   .reader-book-title {
-    font-size: 13px; font-weight: 500; color: var(--ink-muted); white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; max-width: 280px;
+    font-size: 12px; font-weight: 500; color: var(--ink-muted); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0;
+    text-align: center;
+    padding: 0 4px;
   }
   body.dark .reader-book-title { color: var(--ink-muted-dark); }
-  .reader-controls { display: flex; gap: 4px; align-items: center; }
 
-  .page-viewport { flex: 1; display: flex; align-items: stretch; overflow: hidden; position: relative; min-height: 0; }
+  .reader-controls { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
+  .reader-controls-left { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
 
-  .page-tap-left, .page-tap-right { position: absolute; top: 0; bottom: 0; width: 30%; cursor: pointer; z-index: 10; }
+  .reader-header.collapsed .reader-book-title,
+  .reader-header.collapsed .reader-controls-left { display: none; }
+  .reader-header.collapsed { justify-content: space-between; }
+
+  .page-viewport {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; align-items: stretch; overflow: hidden; position: relative;
+    background: var(--bg);
+  }
+  body.dark .page-viewport { background: var(--bg-dark); }
+
+  .page-tap-left, .page-tap-right { position: absolute; top: 0; bottom: 0; width: 35%; cursor: pointer; z-index: 5; }
   .page-tap-left { left: 0; }
   .page-tap-right { right: 0; }
 
   .page-content {
-    flex: 1; display: flex; align-items: stretch; justify-content: center;
-    overflow: hidden; padding: 0 48px; min-height: 0;
+    flex: 1 1 auto; min-width: 0; min-height: 0;
+    display: flex; align-items: stretch; justify-content: center;
+    overflow: hidden; padding: 16px 20px;
+    height: 100%;
   }
 
   .page-text {
     width: 100%; max-width: var(--page-max);
-    flex: 1 1 auto; min-height: 0;
+    height: 100%;
+    min-height: 0;
     overflow: hidden;
     font-family: var(--font-reading); font-size: 18px; line-height: 1.75;
     color: var(--ink); white-space: pre-wrap; word-break: break-word;
-    box-sizing: border-box;
+    -webkit-user-select: none; user-select: none;
+    contain: layout style;
   }
   body.dark .page-text { color: var(--ink-dark); }
 
   .reader-footer {
-    height: 44px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
-    border-top: 1px solid var(--border); flex-shrink: 0; transition: opacity 0.25s;
+    height: 40px; min-height: 40px; padding: 0 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--border); flex-shrink: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    gap: 10px;
+    background: var(--bg);
+    position: relative; z-index: 20;
   }
-  body.dark .reader-footer { border-color: var(--border-dark); }
-  .reader-footer.hidden { opacity: 0; pointer-events: none; }
+  body.dark .reader-footer { border-color: var(--border-dark); background: var(--bg-dark); }
+  .reader-footer.hidden { opacity: 0; pointer-events: none; transform: translateY(4px); }
 
-  .page-indicator { font-size: 12px; color: var(--ink-muted); font-family: var(--font-ui); }
+  .page-indicator { font-size: 11px; color: var(--ink-muted); font-family: var(--font-ui); white-space: nowrap; flex-shrink: 0; }
   body.dark .page-indicator { color: var(--ink-muted-dark); }
 
-  .progress-track { flex: 1; height: 2px; background: var(--border); border-radius: 1px; margin: 0 16px; cursor: pointer; position: relative; }
+  .progress-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; margin: 0 8px; cursor: pointer; position: relative; min-width: 30px; }
   body.dark .progress-track { background: var(--border-dark); }
-  .progress-fill { height: 100%; background: var(--ink-muted); border-radius: 1px; transition: width 0.2s; pointer-events: none; }
+  .progress-fill { height: 100%; background: var(--ink-muted); border-radius: 2px; transition: width 0.2s; pointer-events: none; }
   body.dark .progress-fill { background: var(--ink-muted-dark); }
 
   .settings-panel {
-    position: fixed; top: 52px; right: 0; width: 260px; background: var(--bg);
+    position: fixed; top: 48px; right: 0; width: 260px; max-width: 90vw; background: var(--bg);
     border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
-    padding: 20px; display: none; flex-direction: column; gap: 20px;
+    padding: 18px 16px; display: none; flex-direction: column; gap: 18px;
     z-index: 100; border-radius: 0 0 0 8px; box-shadow: -4px 4px 20px rgba(0,0,0,0.1);
+    max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px);
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
   }
   body.dark .settings-panel { background: var(--surface-dark); border-color: var(--border-dark); box-shadow: -4px 4px 20px rgba(0,0,0,0.4); }
   .settings-panel.open { display: flex; }
 
-  .setting-group { display: flex; flex-direction: column; gap: 10px; }
-  .setting-label { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink-muted); }
+  .setting-group { display: flex; flex-direction: column; gap: 8px; }
+  .setting-label { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink-muted); }
   body.dark .setting-label { color: var(--ink-muted-dark); }
 
-  .font-size-row { display: flex; align-items: center; gap: 10px; }
-  .font-size-row input[type=range] { flex: 1; height: 2px; -webkit-appearance: none; background: var(--border); border-radius: 1px; outline: none; cursor: pointer; }
+  .font-size-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .font-size-row input[type=range] { flex: 1; height: 2px; -webkit-appearance: none; background: var(--border); border-radius: 1px; outline: none; cursor: pointer; min-width: 0; }
   body.dark .font-size-row input[type=range] { background: var(--border-dark); }
-  .font-size-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); cursor: pointer; }
+  .font-size-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); cursor: pointer; }
   body.dark .font-size-row input[type=range]::-webkit-slider-thumb { background: var(--ink-dark); }
 
-  .size-label { font-size: 12px; color: var(--ink-muted); min-width: 32px; text-align: right; }
+  .size-label { font-size: 11px; color: var(--ink-muted); min-width: 28px; text-align: right; }
   body.dark .size-label { color: var(--ink-muted-dark); }
 
   .theme-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .theme-swatch { height: 30px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; }
+  .theme-swatch { height: 32px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; }
   .theme-swatch.active { border-color: var(--ink-muted); }
 
   .font-row { display: flex; flex-direction: column; gap: 6px; }
-  .font-btn { padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; background: transparent; cursor: pointer; text-align: left; color: var(--ink); font-size: 13px; transition: background 0.15s; }
+  .font-btn { padding: 9px 12px; border: 1px solid var(--border); border-radius: 4px; background: transparent; cursor: pointer; text-align: left; color: var(--ink); font-size: 13px; transition: background 0.15s; }
   body.dark .font-btn { border-color: var(--border-dark); color: var(--ink-dark); }
-  .font-btn:hover { background: var(--surface); }
-  body.dark .font-btn:hover { background: #333; }
+  .font-btn:hover, .font-btn:active { background: var(--surface); }
+  body.dark .font-btn:hover, body.dark .font-btn:active { background: #333; }
   .font-btn.active { background: var(--surface); border-color: var(--ink-muted); }
   body.dark .font-btn.active { background: #333; border-color: var(--ink-muted-dark); }
 
   .chapters-panel {
-    position: fixed; top: 52px; left: 0; width: 260px; background: var(--bg);
+    position: fixed; top: 48px; left: 0; width: 260px; max-width: 90vw; background: var(--bg);
     border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
     display: none; flex-direction: column; z-index: 100; border-radius: 0 0 8px 0;
-    box-shadow: 4px 4px 20px rgba(0,0,0,0.1); max-height: calc(100dvh - 52px);
+    box-shadow: 4px 4px 20px rgba(0,0,0,0.1);
+    max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px);
   }
   body.dark .chapters-panel { background: var(--surface-dark); border-color: var(--border-dark); box-shadow: 4px 4px 20px rgba(0,0,0,0.4); }
   .chapters-panel.open { display: flex; }
 
-  .chapters-header { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; letter-spacing: 0.5px; color: var(--ink-muted); flex-shrink: 0; }
+  .chapters-header { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--ink-muted); flex-shrink: 0; }
   body.dark .chapters-header { border-color: var(--border-dark); color: var(--ink-muted-dark); }
 
-  .chapters-list { overflow-y: auto; flex: 1; }
+  .chapters-list { overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
   .chapters-list::-webkit-scrollbar { width: 3px; }
   .chapters-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 1px; }
 
-  .chapter-item { padding: 10px 16px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.1s; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .chapter-item { padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.1s; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
   body.dark .chapter-item { border-color: var(--border-dark); }
-  .chapter-item:hover { background: var(--surface); }
-  body.dark .chapter-item:hover { background: #2e2e2e; }
+  .chapter-item:hover, .chapter-item:active { background: var(--surface); }
+  body.dark .chapter-item:hover, body.dark .chapter-item:active { background: #2e2e2e; }
   .chapter-item.active { background: var(--surface); }
   body.dark .chapter-item.active { background: #2e2e2e; }
 
-  .chapter-name { font-size: 13px; color: var(--ink); line-height: 1.3; flex: 1; }
+  .chapter-name { font-size: 13px; color: var(--ink); line-height: 1.3; flex: 1; min-width: 0; word-break: break-word; }
   body.dark .chapter-name { color: var(--ink-dark); }
   .chapter-page { font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
   body.dark .chapter-page { color: var(--ink-muted-dark); }
 
   .bookmarks-panel {
-    position: fixed; top: 52px; right: 0; width: 240px; background: var(--bg);
+    position: fixed; top: 48px; right: 0; width: 240px; max-width: 90vw; background: var(--bg);
     border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
     display: none; flex-direction: column; z-index: 100; border-radius: 0 0 0 8px;
-    max-height: calc(100dvh - 52px); box-shadow: -4px 4px 20px rgba(0,0,0,0.1);
+    max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px);
+    box-shadow: -4px 4px 20px rgba(0,0,0,0.1);
   }
   body.dark .bookmarks-panel { background: var(--surface-dark); border-color: var(--border-dark); }
   .bookmarks-panel.open { display: flex; }
 
-  .bookmarks-header { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; letter-spacing: 0.5px; color: var(--ink-muted); flex-shrink: 0; }
+  .bookmarks-header { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; color: var(--ink-muted); flex-shrink: 0; }
   body.dark .bookmarks-header { border-color: var(--border-dark); color: var(--ink-muted-dark); }
 
-  .bookmarks-list { overflow-y: auto; flex: 1; }
+  .bookmarks-list { overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
 
-  .bookmark-item { padding: 10px 16px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.1s; display: flex; align-items: center; gap: 8px; }
+  .bookmark-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.1s; display: flex; align-items: center; gap: 8px; min-width: 0; }
   body.dark .bookmark-item { border-color: var(--border-dark); }
-  .bookmark-item:hover { background: var(--surface); }
-  body.dark .bookmark-item:hover { background: #2e2e2e; }
+  .bookmark-item:hover, .bookmark-item:active { background: var(--surface); }
+  body.dark .bookmark-item:hover, body.dark .bookmark-item:active { background: #2e2e2e; }
 
-  .bookmark-text { font-size: 12px; color: var(--ink); flex: 1; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .bookmark-text { font-size: 12px; color: var(--ink); flex: 1; min-width: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
   body.dark .bookmark-text { color: var(--ink-dark); }
 
-  .bookmark-page { font-size: 11px; color: var(--ink-muted); flex-shrink: 0; }
+  .bookmark-page { font-size: 10px; color: var(--ink-muted); flex-shrink: 0; }
   body.dark .bookmark-page { color: var(--ink-muted-dark); }
 
-  .bookmark-del { width: 20px; height: 20px; border: none; background: transparent; cursor: pointer; color: var(--ink-muted); display: flex; align-items: center; justify-content: center; border-radius: 3px; flex-shrink: 0; padding: 0; }
-  .bookmark-del:hover { color: #c0392b; background: #fdecea; }
+  .bookmark-del { width: 24px; height: 24px; border: none; background: transparent; cursor: pointer; color: var(--ink-muted); display: flex; align-items: center; justify-content: center; border-radius: 3px; flex-shrink: 0; padding: 0; }
+  .bookmark-del:hover, .bookmark-del:active { color: #c0392b; background: #fdecea; }
   .bookmark-del svg { width: 13px; height: 13px; stroke-width: 2; }
 
-  .no-items { padding: 24px 16px; font-size: 12px; color: var(--ink-muted); text-align: center; }
+  .no-items { padding: 20px 14px; font-size: 12px; color: var(--ink-muted); text-align: center; }
   body.dark .no-items { color: var(--ink-muted-dark); }
 
   body.theme-sepia { --bg: #f4ead8; --surface: #ede0c4; --ink: #3b2d1e; --ink-muted: #7a6451; --border: rgba(60,40,20,0.14); }
   body.theme-night { --bg: #0f0f0f; --surface: #1a1a1a; --ink: #c8c4bc; --ink-muted: #7a756e; --border: rgba(255,255,255,0.1); }
   body.theme-paper { --bg: #ffffff; --surface: #f0eeeb; --ink: #111111; --ink-muted: #5a5a5a; --border: rgba(0,0,0,0.1); }
 
-  .page-text.turn-left { animation: fadeLeft 0.15s ease-out; }
-  .page-text.turn-right { animation: fadeRight 0.15s ease-out; }
+  .page-text.turn-left { animation: fadeLeft 0.12s ease-out; }
+  .page-text.turn-right { animation: fadeRight 0.12s ease-out; }
   @keyframes fadeLeft { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
   @keyframes fadeRight { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
 
   :fullscreen body, body:fullscreen { height: 100vh; }
   #file-input, #cover-input { display: none; }
 
-  .overlay { display: none; position: fixed; inset: 0; z-index: 50; }
+  .overlay { display: none; position: fixed; inset: 0; z-index: 50; background: transparent; }
   .overlay.open { display: block; }
 
   .cover-0 { background: #2d4a3e; color: #b8cfc9; }
@@ -293,110 +346,170 @@
   .cover-6 { background: #1f2d3a; color: #8aacc4; }
   .cover-7 { background: #2d1f3a; color: #a98acc; }
 
-  .reading-time { font-size: 11px; color: var(--ink-muted); }
+  .reading-time { font-size: 10px; color: var(--ink-muted); white-space: nowrap; flex-shrink: 0; }
   body.dark .reading-time { color: var(--ink-muted-dark); }
 
-  .jump-input { width: 48px; height: 24px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-size: 12px; text-align: center; border-radius: 3px; outline: none; font-family: var(--font-ui); }
+  .jump-input { width: 50px; height: 28px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-size: 12px; text-align: center; border-radius: 3px; outline: none; font-family: var(--font-ui); }
   body.dark .jump-input { border-color: var(--border-dark); background: var(--surface-dark); color: var(--ink-dark); }
 
-  .toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-family: var(--font-ui); opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; z-index: 200; }
+  .toast { position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%) translateY(10px); background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 20px; font-size: 12px; font-family: var(--font-ui); opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; z-index: 200; max-width: 90vw; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   .ctx-menu { position: fixed; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 0; z-index: 300; box-shadow: 0 4px 16px rgba(0,0,0,0.15); display: none; }
   body.dark .ctx-menu { background: var(--surface-dark); border-color: var(--border-dark); }
   .ctx-menu.open { display: block; }
-  .ctx-item { padding: 8px 14px; font-size: 13px; cursor: pointer; color: var(--ink); display: flex; align-items: center; gap: 8px; transition: background 0.1s; font-family: var(--font-ui); }
+  .ctx-item { padding: 10px 14px; font-size: 13px; cursor: pointer; color: var(--ink); display: flex; align-items: center; gap: 8px; transition: background 0.1s; font-family: var(--font-ui); }
   body.dark .ctx-item { color: var(--ink-dark); }
-  .ctx-item:hover { background: var(--surface); }
-  body.dark .ctx-item:hover { background: #333; }
+  .ctx-item:hover, .ctx-item:active { background: var(--surface); }
+  body.dark .ctx-item:hover, body.dark .ctx-item:active { background: #333; }
   .ctx-item svg { width: 14px; height: 14px; stroke-width: 1.8; flex-shrink: 0; }
 
-  .search-panel { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); width: min(480px, 90vw); background: var(--bg); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 12px 16px; display: none; flex-direction: column; gap: 8px; z-index: 100; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+  .search-panel { position: fixed; top: 48px; left: 8px; right: 8px; background: var(--bg); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 10px 12px; display: none; flex-direction: column; gap: 6px; z-index: 100; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
   body.dark .search-panel { background: var(--surface-dark); border-color: var(--border-dark); }
   .search-panel.open { display: flex; }
-  .search-row { display: flex; gap: 8px; align-items: center; }
-  .search-input { flex: 1; height: 32px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-size: 13px; padding: 0 10px; border-radius: 4px; outline: none; font-family: var(--font-ui); }
+  .search-row { display: flex; gap: 6px; align-items: center; min-width: 0; }
+  .search-input { flex: 1; height: 36px; min-width: 0; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-size: 14px; padding: 0 10px; border-radius: 4px; outline: none; font-family: var(--font-ui); }
   body.dark .search-input { border-color: var(--border-dark); background: #333; color: var(--ink-dark); }
-  .search-nav { display: flex; gap: 4px; }
-  .search-results-label { font-size: 11px; color: var(--ink-muted); }
+  .search-nav { display: flex; gap: 2px; flex-shrink: 0; }
+  .search-results-label { font-size: 11px; color: var(--ink-muted); padding: 0 2px; }
   body.dark .search-results-label { color: var(--ink-muted-dark); }
-  .search-highlight { background: rgba(255, 200, 0, 0.35); border-radius: 2px; }
+  .search-highlight { background: rgba(255, 200, 0, 0.4); border-radius: 2px; padding: 0 1px; }
 
-  .lib-search-wrap { display: flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 0 12px; height: 34px; transition: border-color 0.15s, box-shadow 0.15s; }
+  .lib-search-wrap { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 0 10px; height: 32px; transition: border-color 0.15s, box-shadow 0.15s; flex: 1; min-width: 0; max-width: 200px; }
   body.dark .lib-search-wrap { background: var(--surface-dark); border-color: var(--border-dark); }
   .lib-search-wrap:focus-within { border-color: var(--ink-muted); box-shadow: 0 0 0 2px rgba(0,0,0,0.06); }
   body.dark .lib-search-wrap:focus-within { box-shadow: 0 0 0 2px rgba(255,255,255,0.06); }
-  .lib-search-icon { width: 14px; height: 14px; stroke-width: 2; color: var(--ink-muted); flex-shrink: 0; }
+  .lib-search-icon { width: 13px; height: 13px; stroke-width: 2; color: var(--ink-muted); flex-shrink: 0; }
   body.dark .lib-search-icon { color: var(--ink-muted-dark); }
-  .lib-search-input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--ink); font-family: var(--font-ui); width: 140px; }
+  .lib-search-input { border: none; background: transparent; outline: none; font-size: 12px; color: var(--ink); font-family: var(--font-ui); flex: 1; min-width: 0; width: 100%; padding: 0; }
   body.dark .lib-search-input { color: var(--ink-dark); }
   .lib-search-input::placeholder { color: var(--ink-muted); }
   body.dark .lib-search-input::placeholder { color: var(--ink-muted-dark); }
 
-  .lib-clock { font-size: 13px; font-weight: 500; color: var(--ink-muted); font-family: var(--font-ui); letter-spacing: 0.3px; white-space: nowrap; min-width: 44px; text-align: center; }
+  .lib-clock { font-size: 12px; font-weight: 500; color: var(--ink-muted); font-family: var(--font-ui); letter-spacing: 0.3px; white-space: nowrap; min-width: 40px; text-align: center; flex-shrink: 0; }
   body.dark .lib-clock { color: var(--ink-muted-dark); }
 
-  .upload-plus-icon { width: 28px; height: 28px; color: var(--ink-muted); }
+  .upload-plus-icon { width: 26px; height: 26px; color: var(--ink-muted); }
   body.dark .upload-plus-icon { color: var(--ink-muted-dark); }
 
-  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 400; align-items: center; justify-content: center; }
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 400; align-items: center; justify-content: center; padding: 16px; }
   .modal-backdrop.open { display: flex; }
-  .modal-card { background: var(--bg); border-radius: 14px; width: min(440px, 92vw); box-shadow: 0 24px 60px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; animation: modalIn 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+  .modal-card { background: var(--bg); border-radius: 14px; width: min(440px, 100%); max-height: 90vh; max-height: 90dvh; box-shadow: 0 24px 60px rgba(0,0,0,0.22), 0 4px 16px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; animation: modalIn 0.2s cubic-bezier(0.34,1.56,0.64,1); }
   body.dark .modal-card { background: var(--surface-dark); box-shadow: 0 24px 60px rgba(0,0,0,0.6); }
   @keyframes modalIn { from { opacity: 0; transform: scale(0.93) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-  .modal-header { padding: 22px 22px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .modal-header { padding: 18px 18px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   body.dark .modal-header { border-color: var(--border-dark); }
   .modal-star { color: var(--ink); display: flex; align-items: center; }
   body.dark .modal-star { color: var(--ink-dark); }
-  .modal-title { font-size: 16px; font-weight: 700; color: var(--ink); flex: 1; letter-spacing: -0.2px; }
+  .modal-title { font-size: 15px; font-weight: 700; color: var(--ink); flex: 1; letter-spacing: -0.2px; }
   body.dark .modal-title { color: var(--ink-dark); }
-  .modal-close { width: 28px; height: 28px; border: none; background: transparent; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--ink-muted); transition: background 0.15s; padding: 0; }
-  .modal-close:hover { background: var(--surface); }
+  .modal-close { width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--ink-muted); transition: background 0.15s; padding: 0; flex-shrink: 0; }
+  .modal-close:hover, .modal-close:active { background: var(--surface); }
   body.dark .modal-close { color: var(--ink-muted-dark); }
-  body.dark .modal-close:hover { background: #333; }
+  body.dark .modal-close:hover, body.dark .modal-close:active { background: #333; }
   .modal-close svg { width: 16px; height: 16px; }
 
-  .modal-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 18px; }
-  .modal-drop-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .modal-drop { aspect-ratio: 3/2; border: 1.5px dashed var(--border); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, background 0.15s; outline: none; position: relative; overflow: hidden; }
+  .modal-body { padding: 18px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .modal-drop-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-drop { aspect-ratio: 3/2; border: 1.5px dashed var(--border); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, background 0.15s; outline: none; position: relative; overflow: hidden; min-height: 80px; }
   body.dark .modal-drop { border-color: var(--border-dark); }
   .modal-drop:hover, .modal-drop:focus, .modal-drop.has-file { border-color: var(--ink-muted); background: var(--surface); }
   body.dark .modal-drop:hover, body.dark .modal-drop:focus, body.dark .modal-drop.has-file { background: #2a2a2a; }
   .modal-drop.has-file { border-style: solid; }
-  .modal-drop-inner { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--ink-muted); pointer-events: none; }
+  .modal-drop-inner { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--ink-muted); pointer-events: none; padding: 8px; text-align: center; }
   body.dark .modal-drop-inner { color: var(--ink-muted-dark); }
   .modal-drop-inner svg { stroke: currentColor; }
   .modal-drop-label { font-size: 12px; font-weight: 600; color: var(--ink); }
   body.dark .modal-drop-label { color: var(--ink-dark); }
-  .modal-drop-sub { font-size: 11px; }
+  .modal-drop-sub { font-size: 10px; }
   .modal-cover-preview { position: absolute; inset: 0; object-fit: cover; width: 100%; height: 100%; border-radius: 8px; }
   .modal-title-row { display: flex; flex-direction: column; gap: 6px; }
-  .modal-field-label { font-size: 11px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--ink-muted); }
+  .modal-field-label { font-size: 10px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--ink-muted); }
   body.dark .modal-field-label { color: var(--ink-muted-dark); }
-  .modal-title-input { height: 38px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-size: 14px; padding: 0 12px; border-radius: 7px; outline: none; font-family: var(--font-ui); transition: border-color 0.15s; width: 100%; }
+  .modal-title-input { height: 40px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-size: 14px; padding: 0 12px; border-radius: 7px; outline: none; font-family: var(--font-ui); transition: border-color 0.15s; width: 100%; }
   body.dark .modal-title-input { border-color: var(--border-dark); background: #2a2a2a; color: var(--ink-dark); }
   .modal-title-input:focus { border-color: var(--ink-muted); }
   .modal-title-input::placeholder { color: var(--ink-muted); font-style: italic; }
-  .modal-footer { padding: 14px 22px 20px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); }
+  .modal-footer { padding: 12px 18px 16px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); flex-shrink: 0; }
   body.dark .modal-footer { border-color: var(--border-dark); }
-  .modal-cancel { height: 36px; padding: 0 16px; border: 1px solid var(--border); background: transparent; color: var(--ink-muted); font-size: 13px; font-family: var(--font-ui); border-radius: 7px; cursor: pointer; transition: background 0.15s; font-weight: 500; }
-  .modal-cancel:hover { background: var(--surface); }
+  .modal-cancel { height: 38px; padding: 0 16px; border: 1px solid var(--border); background: transparent; color: var(--ink-muted); font-size: 13px; font-family: var(--font-ui); border-radius: 7px; cursor: pointer; transition: background 0.15s; font-weight: 500; }
+  .modal-cancel:hover, .modal-cancel:active { background: var(--surface); }
   body.dark .modal-cancel { border-color: var(--border-dark); color: var(--ink-muted-dark); }
-  body.dark .modal-cancel:hover { background: #333; }
-  .modal-submit { height: 36px; padding: 0 20px; border: none; background: var(--ink); color: var(--bg); font-size: 13px; font-family: var(--font-ui); border-radius: 7px; cursor: pointer; font-weight: 600; transition: opacity 0.15s; }
+  body.dark .modal-cancel:hover, body.dark .modal-cancel:active { background: #333; }
+  .modal-submit { height: 38px; padding: 0 20px; border: none; background: var(--ink); color: var(--bg); font-size: 13px; font-family: var(--font-ui); border-radius: 7px; cursor: pointer; font-weight: 600; transition: opacity 0.15s; }
   body.dark .modal-submit { background: var(--ink-dark); color: var(--bg-dark); }
   .modal-submit:disabled { opacity: 0.35; cursor: not-allowed; }
-  .modal-submit:not(:disabled):hover { opacity: 0.85; }
+  .modal-submit:not(:disabled):hover, .modal-submit:not(:disabled):active { opacity: 0.85; }
 
-  @media (max-width: 600px) {
-    .library-shelf { padding: 20px; gap: 20px 16px; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
-    .library-header { padding: 20px 20px 16px; }
-    .page-content { padding: 0 20px; }
-    .page-text { font-size: 16px; }
-    .settings-panel, .chapters-panel, .bookmarks-panel { width: 220px; }
-    .reader-header { padding: 0 16px; }
-    .reader-footer { padding: 0 16px; }
+  /* Mobile "more" menu */
+  .more-menu { position: fixed; top: 48px; right: 8px; background: var(--bg); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 6px 0; z-index: 110; box-shadow: 0 4px 16px rgba(0,0,0,0.15); min-width: 180px; display: none; }
+  .more-menu.open { display: block; }
+  body.dark .more-menu { background: var(--surface-dark); border-color: var(--border-dark); }
+  .more-item { padding: 10px 14px; font-size: 13px; cursor: pointer; color: var(--ink); display: flex; align-items: center; gap: 10px; font-family: var(--font-ui); }
+  body.dark .more-item { color: var(--ink-dark); }
+  .more-item:hover, .more-item:active { background: var(--surface); }
+  body.dark .more-item:hover, body.dark .more-item:active { background: #333; }
+  .more-item svg { width: 16px; height: 16px; stroke-width: 1.8; flex-shrink: 0; }
+
+  /* Off-screen measure element — used by the fast paginator */
+  #measure {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+    top: 0; left: 0;
+    width: 100%;
+    max-width: var(--page-max);
+    font-family: var(--font-reading);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: hidden;
+    contain: strict;
+  }
+
+  /* iPhone 6: 375x667. We go more aggressive at <= 480. */
+  @media (max-width: 480px) {
+    .library-header { padding: 14px 12px 12px; gap: 6px; }
+    .logo-text { font-size: 16px; }
+    .logo-sub { display: none; }
+    .lib-search-wrap { height: 30px; padding: 0 8px; max-width: 140px; }
+    .lib-search-input { font-size: 12px; }
+    .lib-search-input::placeholder { content: "Search"; }
+    .lib-clock { font-size: 11px; min-width: 36px; }
+    .icon-btn { width: 34px; height: 34px; }
+    .icon-btn svg { width: 16px; height: 16px; }
+    .library-shelf { padding: 16px 12px; gap: 16px 10px; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); }
+    .book-card { gap: 6px; }
+    .book-title-label { font-size: 11px; }
+    .book-percent { font-size: 10px; }
+
+    .reader-header { height: 44px; min-height: 44px; padding: 0 8px; }
+    .reader-book-title { font-size: 11px; }
+    .reader-controls { gap: 0; }
+    .page-content { padding: 12px 16px; }
+    .page-text { font-size: 16px; line-height: 1.7; }
+    .reader-footer { height: 36px; min-height: 36px; padding: 0 12px; }
+    .page-indicator { font-size: 11px; }
+    .reading-time { font-size: 10px; }
+
+    .settings-panel, .chapters-panel, .bookmarks-panel { top: 44px; max-height: calc(100vh - 44px); max-height: calc(100dvh - 44px); }
+    .search-panel { top: 44px; }
+    .more-menu { top: 44px; }
+
+    .modal-body { padding: 14px; }
+    .modal-header { padding: 14px 14px 10px; }
+    .modal-footer { padding: 10px 14px 14px; }
+    .modal-drop-row { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 360px) {
+    .library-shelf { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); }
+    .lib-search-wrap { max-width: 110px; }
+    .page-text { font-size: 15px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
 </style>
 </head>
@@ -405,11 +518,13 @@
 <input type="file" id="file-input" accept=".txt">
 <input type="file" id="cover-input" accept="image/*">
 
+<div id="measure" aria-hidden="true"></div>
+
 <div class="modal-backdrop" id="add-modal">
   <div class="modal-card">
     <div class="modal-header">
       <div class="modal-star">
-        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
           <path d="M16 2 C16 2 17.4 12.6 16 16 C14.6 12.6 16 2 16 2Z" fill="currentColor"/>
           <path d="M16 30 C16 30 14.6 19.4 16 16 C17.4 19.4 16 30 16 30Z" fill="currentColor"/>
           <path d="M2 16 C2 16 12.6 14.6 16 16 C12.6 17.4 2 16 2 16Z" fill="currentColor"/>
@@ -418,7 +533,7 @@
         </svg>
       </div>
       <h2 class="modal-title">Add to library</h2>
-      <button class="modal-close" id="modal-close">
+      <button class="modal-close" id="modal-close" aria-label="Close">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round" stroke-width="1.8"/><line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round" stroke-width="1.8"/></svg>
       </button>
     </div>
@@ -440,7 +555,7 @@
         </div>
       </div>
       <div class="modal-title-row">
-        <label class="modal-field-label">Title</label>
+        <label class="modal-field-label" for="modal-title-input">Title</label>
         <input class="modal-title-input" id="modal-title-input" type="text" placeholder="Auto-detected from file">
       </div>
     </div>
@@ -461,7 +576,7 @@
         <path d="M26 14 C26 14 17.2 15.2 14 14 C17.2 12.8 26 14 26 14Z" fill="currentColor"/>
         <path d="M14 4.5 L15.6 12.4 L22.5 8.5 L16.6 14 L22.5 19.5 L15.6 15.6 L14 23.5 L12.4 15.6 L5.5 19.5 L11.4 14 L5.5 8.5 L12.4 12.4 Z" fill="currentColor" opacity="0.45"/>
       </svg>
-      <div>
+      <div class="logo-text-wrap">
         <div class="logo-text">Carpe</div>
         <div class="logo-sub">Library</div>
       </div>
@@ -469,10 +584,10 @@
     <div class="header-actions">
       <div class="lib-search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="lib-search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke-linecap="round"/></svg>
-        <input type="text" id="lib-search-input" class="lib-search-input" placeholder="Search library...">
+        <input type="text" id="lib-search-input" class="lib-search-input" placeholder="Search">
       </div>
       <div class="lib-clock" id="lib-clock"></div>
-      <button class="icon-btn" id="theme-toggle-lib" title="Toggle dark mode">
+      <button class="icon-btn" id="theme-toggle-lib" title="Toggle dark mode" aria-label="Toggle dark mode">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
           <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -481,7 +596,7 @@
   </div>
   <div class="library-shelf" id="shelf">
     <div class="upload-card" id="upload-card-btn">
-      <div class="upload-area" id="upload-area-card">
+      <div class="upload-area" id="upload-area-card" aria-label="Add a book">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="upload-plus-icon"><line x1="12" y1="5" x2="12" y2="19" stroke-linecap="round" stroke-width="1.5"/><line x1="5" y1="12" x2="19" y2="12" stroke-linecap="round" stroke-width="1.5"/></svg>
       </div>
     </div>
@@ -490,27 +605,29 @@
         <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <p>Upload a .txt file and get started reading!</p>
+      <p>Tap the + card to add a .txt book</p>
     </div>
   </div>
 </div>
 
 <div id="reader">
   <div class="reader-header" id="reader-header">
-    <button class="icon-btn" id="back-btn" title="Back to library">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <line x1="19" y1="12" x2="5" y2="12" stroke-linecap="round"/>
-        <polyline points="12 19 5 12 12 5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+    <div class="reader-controls-left">
+      <button class="icon-btn" id="back-btn" title="Back to library" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <line x1="19" y1="12" x2="5" y2="12" stroke-linecap="round"/>
+          <polyline points="12 19 5 12 12 5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
     <span class="reader-book-title" id="reader-title"></span>
-    <div class="reader-controls">
-      <button class="icon-btn" id="search-btn" title="Search">
+    <div class="reader-controls" id="reader-controls">
+      <button class="icon-btn" id="search-btn" title="Search" aria-label="Search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke-linecap="round"/>
         </svg>
       </button>
-      <button class="icon-btn" id="bookmark-btn" title="Bookmark page">
+      <button class="icon-btn" id="bookmark-btn" title="Bookmark page" aria-label="Bookmark">
         <svg id="bm-icon-empty" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
           <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -518,13 +635,13 @@
           <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <button class="icon-btn" id="bookmarks-panel-btn" title="All bookmarks">
+      <button class="icon-btn" id="bookmarks-panel-btn" title="All bookmarks" aria-label="All bookmarks">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
           <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/>
           <line x1="8" y1="9" x2="16" y2="9" stroke-linecap="round"/>
         </svg>
       </button>
-      <button class="icon-btn" id="toc-btn" title="Table of contents">
+      <button class="icon-btn" id="toc-btn" title="Table of contents" aria-label="Table of contents">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
           <line x1="8" y1="6" x2="21" y2="6" stroke-linecap="round"/>
           <line x1="8" y1="12" x2="21" y2="12" stroke-linecap="round"/>
@@ -534,13 +651,13 @@
           <line x1="3" y1="18" x2="3.01" y2="18" stroke-linecap="round" stroke-width="2"/>
         </svg>
       </button>
-      <button class="icon-btn" id="settings-btn" title="Reading settings">
+      <button class="icon-btn" id="settings-btn" title="Settings" aria-label="Settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
         </svg>
       </button>
-      <button class="icon-btn" id="fullscreen-btn" title="Fullscreen">
+      <button class="icon-btn" id="fullscreen-btn" title="Fullscreen" aria-label="Fullscreen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" id="fs-icon-expand">
           <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -548,20 +665,50 @@
           <path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
+      <button class="icon-btn icon-btn-more" id="more-btn" title="More" aria-label="More" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="5" cy="12" r="1.5" fill="currentColor"/>
+          <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="12" r="1.5" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="more-menu" id="more-menu">
+    <div class="more-item" data-action="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke-linecap="round"/></svg>
+      Search
+    </div>
+    <div class="more-item" data-action="bookmarks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="9" x2="16" y2="9" stroke-linecap="round"/></svg>
+      All bookmarks
+    </div>
+    <div class="more-item" data-action="toc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6" stroke-linecap="round"/><line x1="8" y1="12" x2="21" y2="12" stroke-linecap="round"/><line x1="8" y1="18" x2="21" y2="18" stroke-linecap="round"/><line x1="3" y1="6" x2="3.01" y2="6" stroke-linecap="round" stroke-width="2"/><line x1="3" y1="12" x2="3.01" y2="12" stroke-linecap="round" stroke-width="2"/><line x1="3" y1="18" x2="3.01" y2="18" stroke-linecap="round" stroke-width="2"/></svg>
+      Contents
+    </div>
+    <div class="more-item" data-action="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </div>
+    <div class="more-item" data-action="fullscreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Fullscreen
     </div>
   </div>
 
   <div class="search-panel" id="search-panel">
     <div class="search-row">
-      <input class="search-input" id="search-input" placeholder="Search in book..." type="text">
+      <input class="search-input" id="search-input" placeholder="Search in book..." type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       <div class="search-nav">
-        <button class="icon-btn" id="search-prev" title="Previous result" style="width:28px;height:28px">
+        <button class="icon-btn" id="search-prev" title="Previous result" aria-label="Previous" style="width:36px;height:36px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><polyline points="15 18 9 12 15 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <button class="icon-btn" id="search-next" title="Next result" style="width:28px;height:28px">
+        <button class="icon-btn" id="search-next" title="Next result" aria-label="Next" style="width:36px;height:36px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><polyline points="9 18 15 12 9 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <button class="icon-btn" id="search-close" title="Close" style="width:28px;height:28px">
+        <button class="icon-btn" id="search-close" title="Close" aria-label="Close search" style="width:36px;height:36px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/></svg>
         </button>
       </div>
@@ -624,8 +771,8 @@
   <div class="setting-group">
     <div class="setting-label">Jump to Page</div>
     <div class="font-size-row">
-      <input class="jump-input" id="jump-input" type="number" min="1" placeholder="p">
-      <button class="icon-btn" id="jump-btn" style="width:28px;height:28px;flex-shrink:0">
+      <input class="jump-input" id="jump-input" type="number" min="1" placeholder="p" inputmode="numeric">
+      <button class="icon-btn" id="jump-btn" style="width:32px;height:32px;flex-shrink:0" aria-label="Jump">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><polyline points="9 18 15 12 9 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
@@ -654,17 +801,24 @@
 <div class="toast" id="toast"></div>
 
 <script>
+"use strict";
+
+// ── State ────────────────────────────────────────────────────────────────
 let books = [];
 let currentBook = null;
 let currentPage = 0;
 let pages = [];
+let pagesStart = [0]; // pagesStart[i] = char offset of pages[i] in book text
 let bookmarks = {};
 let settings = { fontSize: 18, lineSpacing: 1.75, font: "Georgia, 'Times New Roman', serif", theme: '' };
 let searchResults = [];
 let searchIdx = 0;
 let headerVisible = true;
 let headerTimeout = null;
+let isMobileCompact = false;
+let paginateToken = 0; // guard against concurrent paginations
 
+// ── Persistence ──────────────────────────────────────────────────────────
 function save() {
   try {
     const data = { books: books.map(b => ({ ...b, text: undefined })), settings };
@@ -677,11 +831,11 @@ function save() {
 function load() {
   try {
     const meta = JSON.parse(localStorage.getItem('carpe_meta') || '{}');
-    settings = { ...settings, ...(meta.settings || {}) };
+    settings = Object.assign({}, settings, meta.settings || {});
     const booksData = meta.books || [];
     books = booksData.map(b => {
       const text = localStorage.getItem('carpe_text_' + b.id);
-      return { ...b, text: text || '' };
+      return Object.assign({}, b, { text: text || '' });
     }).filter(b => b.text && b.title && b.title.trim().length > 1);
     bookmarks = JSON.parse(localStorage.getItem('carpe_bookmarks') || '{}');
     applySettings();
@@ -712,104 +866,149 @@ async function loadBuiltinBooks() {
   }
 }
 
-function paginateText(text, containerEl) {
-  const refEl = document.getElementById('page-text');
-  const availH = Math.max(100, containerEl.clientHeight);
+// ── FAST paginator (binary-search word-fit on a real DOM element) ────────
+// This is the *real* fix for the 10-second freeze. The previous version did
+// ~N forced reflows per page (one per character), so an 800k-char novel
+// produced 800k+ reflows. This version does ~log2(N) reflows per page
+// and at most a few hundred total. Works on iPhone 6 / iOS 12.
+const measureEl = document.getElementById('measure');
 
-  const prevText = refEl.textContent;
-  const prevStyle = refEl.getAttribute('style') || '';
-
-  refEl.style.visibility = 'hidden';
-  refEl.style.position = 'absolute';
-  refEl.style.top = '0';
-  refEl.style.left = '0';
-  refEl.style.pointerEvents = 'none';
-  refEl.style.maxWidth = '680px';
-  refEl.style.width = '680px';
-  refEl.style.overflow = 'visible';
-  refEl.style.height = 'auto';
-
-  const fits = (s) => {
-    refEl.textContent = s;
-    return refEl.offsetHeight <= availH;
-  };
-
-  // Normalize line endings, then split into lines (empty lines preserved as separators)
-  const clean = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  const lines = clean.split('\n');
-
-  const result = [];
-  let buffer = '';
-  let pendingBreak = false; // becomes true after seeing an empty line
-
-  for (const line of lines) {
-    if (line === '') {
-      // Blank line = request a paragraph break before next non-empty line
-      pendingBreak = true;
-      continue;
-    }
-
-    // Build the candidate: existing buffer + appropriate separator + this line
-    // If buffer is empty, no leading separator (avoids leading blank lines on a page)
-    const prefix = buffer
-      ? (pendingBreak ? '\n\n' : '\n')
-      : '';
-    const candidate = buffer + prefix + line;
-
-    if (fits(candidate)) {
-      buffer = candidate;
-      pendingBreak = false;
-    } else {
-      // Flush current buffer as a page
-      if (buffer) { result.push(buffer); buffer = ''; }
-      if (fits(line)) {
-        buffer = line;
-        pendingBreak = false;
-      } else {
-        // Line is longer than a whole page — split it
-        splitChunk(line, result, b => { buffer = b; pendingBreak = false; });
-      }
-    }
-  }
-  if (buffer) result.push(buffer);
-
-  // Restore page-text
-  refEl.textContent = prevText;
-  refEl.setAttribute('style', prevStyle);
-
-  return result.filter(p => p.length > 0);
-
-  function splitChunk(chunk, outArr, setBuffer) {
-    const sentences = chunk.match(/[^.!?\n]+[.!?]+(\s+|$)|[^.!?\n]+$/g) || [chunk];
-    let sentBuf = '';
-    for (const s of sentences) {
-      const cand = sentBuf ? sentBuf + s : s;
-      if (fits(cand)) { sentBuf = cand; continue; }
-      if (sentBuf) { outArr.push(sentBuf); sentBuf = ''; }
-      if (fits(s)) { sentBuf = s; continue; }
-      splitWords(s, outArr, b => { sentBuf = b; });
-    }
-    setBuffer(sentBuf);
-  }
-
-  function splitWords(textIn, outArr, setBuffer) {
-    const words = textIn.split(/(\s+)/);
-    let wordBuf = '';
-    for (const w of words) {
-      const cand = wordBuf + w;
-      if (fits(cand)) { wordBuf = cand; continue; }
-      if (wordBuf) { outArr.push(wordBuf); wordBuf = ''; }
-      if (fits(w)) { wordBuf = w; continue; }
-      for (const ch of w) {
-        const c2 = wordBuf + ch;
-        if (fits(c2)) { wordBuf = c2; }
-        else { if (wordBuf) outArr.push(wordBuf); wordBuf = ch; }
-      }
-    }
-    setBuffer(wordBuf);
-  }
+function configureMeasure() {
+  // Match the live page-text styling exactly so measurements are accurate.
+  const live = document.getElementById('page-text');
+  const cs = window.getComputedStyle(live);
+  measureEl.style.fontFamily = cs.fontFamily;
+  measureEl.style.fontSize = cs.fontSize;
+  measureEl.style.lineHeight = cs.lineHeight;
+  measureEl.style.letterSpacing = cs.letterSpacing;
+  measureEl.style.fontWeight = cs.fontWeight;
+  measureEl.style.width = live.clientWidth + 'px';
+  measureEl.style.maxWidth = cs.maxWidth;
+  measureEl.style.padding = '0';
+  measureEl.style.border = '0';
+  measureEl.style.boxSizing = cs.boxSizing;
+  measureEl.style.whiteSpace = 'pre-wrap';
+  measureEl.style.wordBreak = 'break-word';
 }
 
+function getMeasureHeight() {
+  return measureEl.clientHeight;
+}
+
+function paginateText(text, containerEl) {
+  // If the measure element isn't sized yet, force a layout.
+  configureMeasure();
+  if (measureEl.clientWidth === 0) {
+    // Fall back to container width
+    measureEl.style.width = Math.min(containerEl.clientWidth, 680) + 'px';
+  }
+
+  const maxH = Math.max(120, measureEl.clientHeight);
+  const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  const result = [];
+  const starts = [0];
+  let cursor = 0;
+  const len = normalized.length;
+  const token = ++paginateToken;
+
+  while (cursor < len) {
+    if (token !== paginateToken) return result; // a newer pagination started
+    const page = fitPage(normalized, cursor, maxH);
+    if (page.charCount === 0) {
+      // pathological: single token taller than page — emit one char and move on
+      result.push(normalized.charAt(cursor));
+      starts.push(cursor + 1);
+      cursor += 1;
+      continue;
+    }
+    result.push(page.text);
+    cursor += page.charCount;
+    starts.push(cursor);
+  }
+  return result;
+}
+
+// Find the longest prefix of text starting at `start` that fits in maxH px.
+// Strategy: find the paragraph break nearest to a binary-search position.
+function fitPage(text, start, maxH) {
+  const remaining = text.length - start;
+  if (remaining <= 0) return { text: '', charCount: 0 };
+
+  // Quick check: does the whole remainder fit on one page?
+  measureEl.textContent = text.slice(start);
+  if (measureEl.offsetHeight <= maxH) {
+    return { text: text.slice(start), charCount: remaining };
+  }
+
+  // Binary search for the longest prefix that fits (in CHARACTERS).
+  let lo = 1, hi = remaining, best = 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    measureEl.textContent = text.slice(start, start + mid);
+    if (measureEl.offsetHeight <= maxH) { best = mid; lo = mid + 1; }
+    else { hi = mid - 1; }
+  }
+
+  // Now walk back from `best` to a clean break (paragraph > line > space)
+  // to avoid orphaning the first word/letter of a new paragraph.
+  const slice = text.slice(start, start + best);
+  let breakAt = findBreakBefore(text, start, start + best);
+  let out;
+  if (breakAt > start) {
+    out = text.slice(start, breakAt);
+  } else {
+    // No clean break — just emit the binary-search best.
+    out = slice;
+  }
+
+  // Trim trailing whitespace (including newlines) from the page; we add them
+  // back at the start of the next page if appropriate.
+  let trimmedEnd = out.length;
+  while (trimmedEnd > 0 && /\s/.test(out.charAt(trimmedEnd - 1))) trimmedEnd--;
+  const outTrim = out.slice(0, trimmedEnd);
+
+  return { text: outTrim, charCount: outTrim.length };
+}
+
+// Find a clean break position in (start, end]. Prefers \n\n, then \n, then space.
+function findBreakBefore(text, start, end) {
+  const window = text.slice(start, end);
+  // 1. Paragraph break
+  let idx = window.lastIndexOf('\n\n');
+  if (idx >= 0) return start + idx;
+  // 2. Single newline
+  idx = window.lastIndexOf('\n');
+  if (idx >= 0) return start + idx + 1;
+  // 3. Whitespace
+  idx = window.search(/\s\S*$/);
+  if (idx >= 0) return start + idx;
+  return start; // no break found
+}
+
+// ── Chapters ─────────────────────────────────────────────────────────────
+function detectChapters(text) {
+  const chapters = [];
+  const lines = text.split('\n');
+  const patterns = [
+    /^(chapter|ch\.?|part|section|book)\s+(\d+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten)/i,
+    /^\s*(CHAPTER|PART|SECTION)\s+/,
+    /^[A-Z][A-Z\s]{4,40}$/,
+  ];
+  let charPos = 0;
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+    if (trimmed.length > 0 && trimmed.length < 80) {
+      for (const p of patterns) {
+        if (p.test(trimmed)) { chapters.push({ name: trimmed, charPos, lineIdx: i }); break; }
+      }
+    }
+    charPos += line.length + 1;
+  });
+  return chapters;
+}
+
+// ── Library rendering ────────────────────────────────────────────────────
 function coverColorClass(idx) { return 'cover-' + (idx % 8); }
 
 function renderLibrary() {
@@ -833,6 +1032,7 @@ function renderLibrary() {
       const coverImg = document.createElement('img');
       coverImg.src = book.coverUrl;
       coverImg.alt = safeTitle;
+      coverImg.loading = 'lazy';
       coverImg.onerror = function() {
         const ph = document.createElement('div');
         ph.className = 'book-cover-placeholder ' + coverColorClass(idx);
@@ -887,6 +1087,7 @@ function removeBook(id) {
   renderLibrary();
 }
 
+// ── Reading ──────────────────────────────────────────────────────────────
 function openBook(id) {
   const book = books.find(b => b.id === id);
   if (!book) return;
@@ -898,19 +1099,31 @@ function openBook(id) {
   document.getElementById('reader').classList.add('active');
   document.getElementById('reader-title').textContent = book.title;
   applySettings();
+  updateCompactMode();
 
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    const vp = document.querySelector('.page-viewport');
-    pages = paginateText(book.text, vp);
-    book.totalPages = pages.length;
-    if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
-    renderPage(currentPage);
-    updateBookmarkIcon();
-    renderTOC();
-    renderBookmarks();
-    save();
-    showHeaders();
-  }));
+  // Render the FIRST page immediately with empty/old pagination so the user
+  // sees the book right away; then upgrade with real pages once paginated.
+  showPage(0);
+  updateBookmarkIcon();
+
+  // Heavy work off the click path:
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const vp = document.querySelector('.page-viewport');
+      configureMeasure();
+      const newPages = paginateText(book.text, vp);
+      if (newPages.length === 0) return; // text empty
+      pages = newPages;
+      book.totalPages = pages.length;
+      if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
+      showPage(currentPage);
+      updateBookmarkIcon();
+      renderTOC();
+      renderBookmarks();
+      save();
+      showHeaders();
+    });
+  });
 }
 
 function closeReader() {
@@ -927,8 +1140,13 @@ function closeReader() {
   currentBook = null;
 }
 
-function renderPage(n, dir) {
-  if (!pages.length) return;
+function showPage(n, dir) {
+  if (!pages.length) {
+    // Show raw text during the brief window before pagination completes.
+    document.getElementById('page-text').textContent = currentBook ? currentBook.text.slice(0, 2000) : '';
+    document.getElementById('page-indicator').textContent = 'Loading…';
+    return;
+  }
   n = Math.max(0, Math.min(n, pages.length - 1));
   currentPage = n;
   const el = document.getElementById('page-text');
@@ -954,16 +1172,15 @@ function renderPage(n, dir) {
   updateBookmarkIcon();
 }
 
-
-function nextPage() { if (currentPage < pages.length - 1) { renderPage(currentPage + 1, 'forward'); save(); } }
-function prevPage() { if (currentPage > 0) { renderPage(currentPage - 1, 'back'); save(); } }
+function nextPage() { if (currentPage < pages.length - 1) { showPage(currentPage + 1, 'forward'); save(); } }
+function prevPage() { if (currentPage > 0) { showPage(currentPage - 1, 'back'); save(); } }
 
 function showHeaders() {
   headerVisible = true;
   document.getElementById('reader-header').classList.remove('hidden');
   document.getElementById('reader-footer').classList.remove('hidden');
   clearTimeout(headerTimeout);
-  headerTimeout = setTimeout(hideHeaders, 4000);
+  if (currentBook) headerTimeout = setTimeout(hideHeaders, 4000);
 }
 function hideHeaders() {
   headerVisible = false;
@@ -971,6 +1188,7 @@ function hideHeaders() {
   document.getElementById('reader-footer').classList.add('hidden');
 }
 
+// ── Settings / themes ────────────────────────────────────────────────────
 function applySettings() {
   const el = document.getElementById('page-text');
   el.style.fontSize = settings.fontSize + 'px';
@@ -981,15 +1199,20 @@ function applySettings() {
   if (settings.theme === 'theme-night') document.body.classList.add('dark');
   else if (settings.theme) document.body.classList.add(settings.theme);
 
-  document.getElementById('font-size-slider').value = settings.fontSize;
-  document.getElementById('font-size-label').textContent = settings.fontSize;
-  document.getElementById('line-spacing-slider').value = Math.round(settings.lineSpacing * 100);
-  document.getElementById('line-spacing-label').textContent = settings.lineSpacing.toFixed(2);
+  const fs = document.getElementById('font-size-slider');
+  if (fs) fs.value = settings.fontSize;
+  const fsl = document.getElementById('font-size-label');
+  if (fsl) fsl.textContent = settings.fontSize;
+  const ls = document.getElementById('line-spacing-slider');
+  if (ls) ls.value = Math.round(settings.lineSpacing * 100);
+  const lsl = document.getElementById('line-spacing-label');
+  if (lsl) lsl.textContent = settings.lineSpacing.toFixed(2);
 
   document.querySelectorAll('.theme-swatch').forEach(s => s.classList.toggle('active', s.dataset.theme === settings.theme));
   document.querySelectorAll('.font-btn').forEach(b => b.classList.toggle('active', b.dataset.font === settings.font));
 }
 
+// ── Bookmarks ────────────────────────────────────────────────────────────
 function toggleBookmark() {
   if (!currentBook) return;
   const id = currentBook.id;
@@ -999,7 +1222,7 @@ function toggleBookmark() {
     bookmarks[id].splice(existing, 1);
     showToast('Bookmark removed');
   } else {
-    const snippet = (pages[currentPage] || '').slice(0, 60).replace(/\n/g, ' ');
+    const snippet = (pages[currentPage] || '').slice(0, 60).replace(/\s+/g, ' ');
     bookmarks[id].push({ page: currentPage, snippet });
     showToast('Bookmarked page ' + (currentPage + 1));
   }
@@ -1012,8 +1235,10 @@ function updateBookmarkIcon() {
   if (!currentBook) return;
   const id = currentBook.id;
   const isBookmarked = !!(bookmarks[id] && bookmarks[id].some(b => b.page === currentPage));
-  document.getElementById('bm-icon-empty').style.display = isBookmarked ? 'none' : 'block';
-  document.getElementById('bm-icon-filled').style.display = isBookmarked ? 'block' : 'none';
+  const empty = document.getElementById('bm-icon-empty');
+  const filled = document.getElementById('bm-icon-filled');
+  empty.style.display = isBookmarked ? 'none' : 'block';
+  filled.style.display = isBookmarked ? 'block' : 'none';
   document.getElementById('bookmark-btn').title = isBookmarked ? 'Remove bookmark' : 'Bookmark page';
 }
 
@@ -1035,6 +1260,7 @@ function renderBookmarks() {
     const del = document.createElement('button');
     del.className = 'bookmark-del';
     del.title = 'Remove';
+    del.setAttribute('aria-label', 'Remove bookmark');
     del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"/><line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"/></svg>';
     d.appendChild(txt); d.appendChild(pg); d.appendChild(del);
     del.addEventListener('click', e => {
@@ -1042,8 +1268,9 @@ function renderBookmarks() {
       bookmarks[id] = bookmarks[id].filter(b => b.page !== bm.page);
       save();
       renderBookmarks();
+      updateBookmarkIcon();
     });
-    d.addEventListener('click', () => { renderPage(bm.page); closeAllPanels(); });
+    d.addEventListener('click', () => { showPage(bm.page); closeAllPanels(); });
     list.appendChild(d);
   });
 }
@@ -1055,17 +1282,14 @@ function renderTOC() {
   const chapters = detectChapters(currentBook.text);
   if (chapters.length === 0) { list.innerHTML = '<div class="no-items">No chapters detected</div>'; return; }
 
-  let charCount = 0;
-  const pageStarts = [0];
-  pages.forEach(p => { charCount += p.length; pageStarts.push(charCount); });
-
   chapters.forEach(ch => {
-    let pageIdx = 0;
-    for (let i = 0; i < pageStarts.length - 1; i++) {
-      if (pageStarts[i] <= ch.charPos && pageStarts[i + 1] > ch.charPos) { pageIdx = i; break; }
-      if (i === pageStarts.length - 2) pageIdx = i;
+    // Find the page index whose start <= ch.charPos < next page's start
+    let pg = 0;
+    for (let i = 0; i < pagesStart.length - 1; i++) {
+      if (pagesStart[i] <= ch.charPos && pagesStart[i + 1] > ch.charPos) { pg = i; break; }
+      if (i === pagesStart.length - 2) pg = i;
     }
-    const pg = Math.max(0, Math.min(pageIdx, pages.length - 1));
+    pg = Math.max(0, Math.min(pg, pages.length - 1));
     const d = document.createElement('div');
     d.className = 'chapter-item' + (pg === currentPage ? ' active' : '');
     const nm = document.createElement('span');
@@ -1073,11 +1297,12 @@ function renderTOC() {
     const cp = document.createElement('span');
     cp.className = 'chapter-page'; cp.textContent = 'p.' + (pg + 1);
     d.appendChild(nm); d.appendChild(cp);
-    d.addEventListener('click', () => { renderPage(pg); closeAllPanels(); });
+    d.addEventListener('click', () => { showPage(pg); closeAllPanels(); });
     list.appendChild(d);
   });
 }
 
+// ── Search ───────────────────────────────────────────────────────────────
 let searchTerm = '';
 function doSearch() {
   const term = document.getElementById('search-input').value.trim().toLowerCase();
@@ -1087,49 +1312,66 @@ function doSearch() {
     clearSearchHighlight(); return;
   }
   searchTerm = term;
-  pages.forEach((p, i) => { if (p.toLowerCase().includes(term)) searchResults.push(i); });
+  pages.forEach((p, i) => { if (p.toLowerCase().indexOf(term) !== -1) searchResults.push(i); });
   document.getElementById('search-results-label').textContent =
     searchResults.length ? searchResults.length + ' page' + (searchResults.length > 1 ? 's' : '') + ' found' : 'No results';
-  if (searchResults.length) { searchIdx = 0; renderPage(searchResults[0]); applySearchHighlight(); }
+  if (searchResults.length) { searchIdx = 0; showPage(searchResults[0]); applySearchHighlight(); }
 }
 
 function applySearchHighlight() {
   const el = document.getElementById('page-text');
   if (!searchTerm) return;
   const re = new RegExp('(' + escRegex(searchTerm) + ')', 'gi');
-  el.innerHTML = el.textContent.replace(re, '<mark class="search-highlight">$1</mark>');
+  // textContent then escape then inject — safe from injection
+  el.textContent = pages[currentPage] || '';
+  const safe = el.textContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  el.innerHTML = safe.replace(re, '<mark class="search-highlight">$1</mark>');
 }
-function clearSearchHighlight() { document.getElementById('page-text').textContent = pages[currentPage] || ''; }
+function clearSearchHighlight() {
+  const el = document.getElementById('page-text');
+  el.textContent = pages[currentPage] || '';
+}
 function escRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+// ── Fullscreen ───────────────────────────────────────────────────────────
 function toggleFullscreen() {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
-  else document.exitFullscreen().catch(() => {});
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    const el = document.documentElement;
+    (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el).catch(() => {});
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen || (() => {})).call(document).catch(() => {});
+  }
 }
 
-document.addEventListener('fullscreenchange', () => {
-  const inFs = !!document.fullscreenElement;
+function fullscreenActive() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+function onFullscreenChange() {
+  const inFs = fullscreenActive();
   document.getElementById('fs-icon-expand').style.display = inFs ? 'none' : 'block';
   document.getElementById('fs-icon-shrink').style.display = inFs ? 'block' : 'none';
-  if (currentBook) {
-    setTimeout(() => {
-      const vp = document.querySelector('.page-viewport');
-      pages = paginateText(currentBook.text, vp);
-      currentBook.totalPages = pages.length;
-      renderPage(Math.min(currentPage, pages.length - 1));
-    }, 50);
-  }
-});
+  if (currentBook) repaginateAndShow();
+}
+document.addEventListener('fullscreenchange', onFullscreenChange);
+document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 
+// ── Panels ───────────────────────────────────────────────────────────────
 function closeAllPanels() {
-  ['settings-panel', 'toc-panel', 'bm-panel', 'search-panel'].forEach(id => document.getElementById(id).classList.remove('open'));
+  ['settings-panel', 'toc-panel', 'bm-panel', 'search-panel', 'more-menu'].forEach(id => {
+    const p = document.getElementById(id);
+    if (p) p.classList.remove('open');
+  });
   document.getElementById('overlay').classList.remove('open');
   document.getElementById('ctx-menu').classList.remove('open');
 }
 
 function togglePanel(id) {
   const panel = document.getElementById(id);
-  ['settings-panel', 'toc-panel', 'bm-panel', 'search-panel'].filter(x => x !== id).forEach(o => document.getElementById(o).classList.remove('open'));
+  ['settings-panel', 'toc-panel', 'bm-panel', 'search-panel', 'more-menu'].filter(x => x !== id).forEach(o => {
+    const p = document.getElementById(o);
+    if (p) p.classList.remove('open');
+  });
   panel.classList.toggle('open');
   document.getElementById('overlay').classList.toggle('open', panel.classList.contains('open'));
   if (id === 'search-panel' && panel.classList.contains('open')) setTimeout(() => document.getElementById('search-input').focus(), 50);
@@ -1139,7 +1381,8 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), 1800);
 }
 
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -1149,17 +1392,18 @@ function updateClock() {
   const el = document.getElementById('lib-clock');
   if (el) el.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 }
-updateClock(); setInterval(updateClock, 10000);
+updateClock(); setInterval(updateClock, 30000);
 
 document.getElementById('lib-search-input').addEventListener('input', e => {
   const q = e.target.value.trim().toLowerCase();
   document.querySelectorAll('.book-card').forEach(card => {
     const title = card.querySelector('.book-title-label');
     if (!title) return;
-    card.style.display = (!q || title.textContent.toLowerCase().includes(q)) ? '' : 'none';
+    card.style.display = (!q || title.textContent.toLowerCase().indexOf(q) !== -1) ? '' : 'none';
   });
 });
 
+// ── Add-book modal ───────────────────────────────────────────────────────
 let pendingTxt = null;
 let pendingCoverDataUrl = null;
 
@@ -1178,7 +1422,7 @@ function closeAddModal() { document.getElementById('add-modal').classList.remove
 document.getElementById('upload-card-btn').addEventListener('click', openAddModal);
 
 function handleTxtFile(file) {
-  if (!file || !file.name.endsWith('.txt')) return showToast('Need a .txt file');
+  if (!file || !file.name.toLowerCase().endsWith('.txt')) return showToast('Need a .txt file');
   const r = new FileReader();
   r.onload = ev => {
     pendingTxt = { text: ev.target.result, name: file.name };
@@ -1230,45 +1474,86 @@ document.getElementById('modal-submit').addEventListener('click', () => {
   showToast('"' + title + '" added');
 });
 
+// ── Reader event wiring ──────────────────────────────────────────────────
 document.getElementById('back-btn').addEventListener('click', closeReader);
 document.getElementById('tap-left').addEventListener('click', () => { prevPage(); showHeaders(); });
 document.getElementById('tap-right').addEventListener('click', () => { nextPage(); showHeaders(); });
 
-document.querySelector('.page-content').addEventListener('click', e => {
-  if (e.target === e.currentTarget || e.target.id === 'page-text') { showHeaders(); closeAllPanels(); }
+// Tap to toggle header (middle of the page-text only)
+document.getElementById('page-text').addEventListener('click', e => {
+  e.stopPropagation();
+  if (headerVisible) hideHeaders(); else showHeaders();
 });
 
 document.addEventListener('keydown', e => {
   if (document.getElementById('reader').classList.contains('active')) {
+    // Don't intercept when user is typing
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); nextPage(); showHeaders(); }
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevPage(); showHeaders(); }
-    if (e.key === 'Escape') closeAllPanels();
-    if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); togglePanel('search-panel'); }
-    if (e.key === 'b' && !e.ctrlKey) toggleBookmark();
-    if (e.key === 'F11') { e.preventDefault(); toggleFullscreen(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prevPage(); showHeaders(); }
+    else if (e.key === 'Escape') closeAllPanels();
+    else if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); togglePanel('search-panel'); }
+    else if (e.key === 'b' && !e.ctrlKey && !e.metaKey) toggleBookmark();
+    else if (e.key === 'F11') { e.preventDefault(); toggleFullscreen(); }
   }
 });
 
-let touchStartX = 0, touchStartY = 0;
-document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; });
+let touchStartX = 0, touchStartY = 0, touchStartT = 0, touchMoved = false;
+document.addEventListener('touchstart', e => {
+  if (!document.getElementById('reader').classList.contains('active')) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartT = Date.now();
+  touchMoved = false;
+}, { passive: true });
+
+document.addEventListener('touchmove', e => {
+  if (Math.abs(e.touches[0].clientX - touchStartX) > 10 || Math.abs(e.touches[0].clientY - touchStartY) > 10) {
+    touchMoved = true;
+  }
+}, { passive: true });
+
 document.addEventListener('touchend', e => {
   if (!document.getElementById('reader').classList.contains('active')) return;
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
-  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) { if (dx < 0) nextPage(); else prevPage(); showHeaders(); }
-});
+  const dt = Date.now() - touchStartT;
+  if (!touchMoved && dt < 250) {
+    // tap — toggle header
+    if (headerVisible) hideHeaders(); else showHeaders();
+    return;
+  }
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { if (dx < 0) nextPage(); else prevPage(); showHeaders(); }
+}, { passive: true });
 
 document.getElementById('progress-track').addEventListener('click', e => {
+  if (!pages.length) return;
   const rect = e.currentTarget.getBoundingClientRect();
-  renderPage(Math.round(((e.clientX - rect.left) / rect.width) * (pages.length - 1)));
+  showPage(Math.round(((e.clientX - rect.left) / rect.width) * (pages.length - 1)));
+  save();
 });
 
+// Header buttons
 document.getElementById('settings-btn').addEventListener('click', () => togglePanel('settings-panel'));
 document.getElementById('toc-btn').addEventListener('click', () => { renderTOC(); togglePanel('toc-panel'); });
 document.getElementById('bookmarks-panel-btn').addEventListener('click', () => { renderBookmarks(); togglePanel('bm-panel'); });
 document.getElementById('bookmark-btn').addEventListener('click', toggleBookmark);
 document.getElementById('search-btn').addEventListener('click', () => togglePanel('search-panel'));
 document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+document.getElementById('more-btn').addEventListener('click', e => { e.stopPropagation(); togglePanel('more-menu'); });
+
+document.querySelectorAll('.more-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const act = item.dataset.action;
+    closeAllPanels();
+    if (act === 'search') togglePanel('search-panel');
+    else if (act === 'bookmarks') { renderBookmarks(); togglePanel('bm-panel'); }
+    else if (act === 'toc') { renderTOC(); togglePanel('toc-panel'); }
+    else if (act === 'settings') togglePanel('settings-panel');
+    else if (act === 'fullscreen') toggleFullscreen();
+  });
+});
 
 document.getElementById('overlay').addEventListener('click', closeAllPanels);
 
@@ -1277,34 +1562,25 @@ document.getElementById('theme-toggle-lib').addEventListener('click', () => {
   applySettings(); save();
 });
 
+// Settings controls
 document.getElementById('font-size-slider').addEventListener('input', e => {
-  settings.fontSize = parseInt(e.target.value);
+  settings.fontSize = parseInt(e.target.value, 10);
   document.getElementById('font-size-label').textContent = settings.fontSize;
   document.getElementById('page-text').style.fontSize = settings.fontSize + 'px';
   save();
 });
 document.getElementById('font-size-slider').addEventListener('change', () => {
-  if (currentBook) {
-    const vp = document.querySelector('.page-viewport');
-    pages = paginateText(currentBook.text, vp);
-    currentBook.totalPages = pages.length;
-    renderPage(Math.min(currentPage, pages.length - 1));
-  }
+  if (currentBook) repaginateAndShow();
 });
 
 document.getElementById('line-spacing-slider').addEventListener('input', e => {
-  settings.lineSpacing = parseInt(e.target.value) / 100;
+  settings.lineSpacing = parseInt(e.target.value, 10) / 100;
   document.getElementById('line-spacing-label').textContent = settings.lineSpacing.toFixed(2);
   document.getElementById('page-text').style.lineHeight = settings.lineSpacing;
   save();
 });
 document.getElementById('line-spacing-slider').addEventListener('change', () => {
-  if (currentBook) {
-    const vp = document.querySelector('.page-viewport');
-    pages = paginateText(currentBook.text, vp);
-    currentBook.totalPages = pages.length;
-    renderPage(Math.min(currentPage, pages.length - 1));
-  }
+  if (currentBook) repaginateAndShow();
 });
 
 document.querySelectorAll('.font-btn').forEach(btn => {
@@ -1312,12 +1588,7 @@ document.querySelectorAll('.font-btn').forEach(btn => {
     settings.font = btn.dataset.font;
     document.querySelectorAll('.font-btn').forEach(b => b.classList.toggle('active', b === btn));
     document.getElementById('page-text').style.fontFamily = settings.font;
-    if (currentBook) {
-      const vp = document.querySelector('.page-viewport');
-      pages = paginateText(currentBook.text, vp);
-      currentBook.totalPages = pages.length;
-      renderPage(Math.min(currentPage, pages.length - 1));
-    }
+    if (currentBook) repaginateAndShow();
     save();
   });
 });
@@ -1327,9 +1598,9 @@ document.querySelectorAll('.theme-swatch').forEach(sw => {
 });
 
 document.getElementById('jump-btn').addEventListener('click', () => {
-  const n = parseInt(document.getElementById('jump-input').value);
+  const n = parseInt(document.getElementById('jump-input').value, 10);
   if (!isNaN(n) && n >= 1 && n <= pages.length) {
-    renderPage(n - 1); closeAllPanels(); document.getElementById('jump-input').value = '';
+    showPage(n - 1); closeAllPanels(); document.getElementById('jump-input').value = '';
   }
 });
 document.getElementById('jump-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('jump-btn').click(); });
@@ -1338,12 +1609,12 @@ document.getElementById('search-input').addEventListener('input', doSearch);
 document.getElementById('search-next').addEventListener('click', () => {
   if (!searchResults.length) return;
   searchIdx = (searchIdx + 1) % searchResults.length;
-  renderPage(searchResults[searchIdx]); applySearchHighlight();
+  showPage(searchResults[searchIdx]); applySearchHighlight();
 });
 document.getElementById('search-prev').addEventListener('click', () => {
   if (!searchResults.length) return;
   searchIdx = (searchIdx - 1 + searchResults.length) % searchResults.length;
-  renderPage(searchResults[searchIdx]); applySearchHighlight();
+  showPage(searchResults[searchIdx]); applySearchHighlight();
 });
 document.getElementById('search-close').addEventListener('click', () => {
   closeAllPanels();
@@ -1353,11 +1624,29 @@ document.getElementById('search-close').addEventListener('click', () => {
   document.getElementById('search-results-label').textContent = '';
 });
 
-let longPressTimer;
-document.getElementById('page-text').addEventListener('contextmenu', e => { e.preventDefault(); showCtxMenu(e.clientX, e.clientY); });
-document.getElementById('page-text').addEventListener('touchstart', e => { longPressTimer = setTimeout(() => showCtxMenu(e.touches[0].clientX, e.touches[0].clientY), 600); }, { passive: true });
-document.getElementById('page-text').addEventListener('touchend', () => clearTimeout(longPressTimer), { passive: true });
-document.getElementById('page-text').addEventListener('touchmove', () => clearTimeout(longPressTimer), { passive: true });
+// Context menu (long press)
+let longPressTimer = null;
+let longPressFired = false;
+function clearLP() { if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; } }
+
+document.getElementById('page-text').addEventListener('contextmenu', e => {
+  e.preventDefault();
+  if (!currentBook) return;
+  longPressFired = true;
+  showCtxMenu(e.clientX, e.clientY);
+});
+document.getElementById('page-text').addEventListener('touchstart', e => {
+  if (!currentBook) return;
+  const t = e.touches[0];
+  longPressFired = false;
+  longPressTimer = setTimeout(() => {
+    longPressFired = true;
+    showCtxMenu(t.clientX, t.clientY);
+  }, 600);
+}, { passive: true });
+document.getElementById('page-text').addEventListener('touchend', clearLP, { passive: true });
+document.getElementById('page-text').addEventListener('touchmove', clearLP, { passive: true });
+document.getElementById('page-text').addEventListener('touchcancel', clearLP, { passive: true });
 
 function showCtxMenu(x, y) {
   const menu = document.getElementById('ctx-menu');
@@ -1371,22 +1660,71 @@ document.addEventListener('click', e => {
   if (menu.classList.contains('open') && !menu.contains(e.target)) menu.classList.remove('open');
 });
 
-let resizeTimer;
+// ── Compact mode (iPhone-sized screens) ──────────────────────────────────
+// On narrow screens, replace the cluster of icon buttons with a single ⋯ menu.
+function updateCompactMode() {
+  const w = window.innerWidth;
+  const compact = w <= 480;
+  if (compact === isMobileCompact) return;
+  isMobileCompact = compact;
+  const moreBtn = document.getElementById('more-btn');
+  // Buttons we hide in compact mode (we keep: back, bookmark, search, fullscreen)
+  const compactHide = ['toc-btn', 'bookmarks-panel-btn', 'settings-btn'];
+  compactHide.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = compact ? 'none' : '';
+  });
+  if (moreBtn) moreBtn.style.display = compact ? '' : 'none';
+  // On very small screens also hide the clock in the reader header
+  const clock = document.getElementById('lib-clock');
+  // (clock is in library, not reader — leave as-is)
+}
+window.addEventListener('resize', updateCompactMode);
+
+// ── Repaginate (used by settings changes, fullscreen, resize) ────────────
+function repaginateAndShow() {
+  if (!currentBook) return;
+  configureMeasure();
+  const vp = document.querySelector('.page-viewport');
+  const newPages = paginateText(currentBook.text, vp);
+  pages = newPages;
+  // Build pagesStart from the source text — used by renderTOC
+  pagesStart = [0];
+  let acc = 0;
+  for (const p of pages) { acc += p.length; pagesStart.push(acc); }
+  currentBook.totalPages = pages.length;
+  if (currentPage >= pages.length) currentPage = Math.max(0, pages.length - 1);
+  showPage(currentPage);
+  updateBookmarkIcon();
+  renderTOC();
+  save();
+}
+
+// Debounced resize → repaginate
+let resizeTimer = null;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    if (currentBook) {
-      const vp = document.querySelector('.page-viewport');
-      pages = paginateText(currentBook.text, vp);
-      currentBook.totalPages = pages.length;
-      renderPage(Math.min(currentPage, pages.length - 1));
-    }
-  }, 150);
+    if (currentBook) repaginateAndShow();
+  }, 200);
+});
+// Some iOS browsers fire orientationchange without a corresponding resize
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => { if (currentBook) repaginateAndShow(); }, 250);
 });
 
+// ── Boot ─────────────────────────────────────────────────────────────────
 load();
 renderLibrary();
 loadBuiltinBooks();
+updateCompactMode();
+
+// Re-measure after fonts load (iOS loads Georgia lazily)
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => {
+    if (currentBook) repaginateAndShow();
+  });
+}
 </script>
 </body>
 </html>
