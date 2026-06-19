@@ -1,5 +1,5 @@
 # Carpe
-Open Source minikindle for the web. Download Carpe Local to run Carpe with no internet - books bundled with it in a single file
+Open Source minikindle for the web.<br> Download Carpe Local to run Carpe with no internet - books bundled with it in a single file
 ## Carpe MiniKindle
 Site: https://katsugachi.github.io/Carpe/
 
